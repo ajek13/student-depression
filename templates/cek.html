@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <title>Kuesioner Kesehatan Mental Mahasiswa</title>
+    <style>
+        body { 
+            font-family: "Inter"; 
+            margin: 0; 
+            background-color: #f4f7f6; 
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1em;
+            box-sizing: border-box;
+        }
+        .container { 
+            max-width: 700px; 
+            width: 100%;
+            margin: auto; 
+            background: white; 
+            padding: 2em; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08); 
+            overflow: hidden;
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center;
+            font-size: 1.8em;
+            margin-top: 0;
+            margin-bottom: 0.5em;
+        }
+
+        /* Sembunyikan semua langkah secara default */
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        /* Tampilkan langkah yang aktif */
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-block { 
+            margin-bottom: 1.5em; 
+            min-height: 150px; /* Memberi tinggi minimum agar layout stabil */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        label { 
+            display: block; 
+            margin-bottom: 0.5em; 
+            font-weight: bold; 
+            font-size: 1.3em;
+            text-align: center;
+            line-height: 1.4;
+        }
+        select, input { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            box-sizing: border-box; 
+            font-size: 1em;
+            margin-top: 1em;
+        }
+        
+        /* Styling untuk tombol navigasi */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2em;
+        }
+        .nav-btn { 
+            padding: 12px 30px; 
+            font-size: 1.1em; 
+            font-weight: bold;
+            cursor: pointer; 
+            background-color: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+        .nav-btn.prev {
+            background-color: #7f8c8d;
+        }
+        .nav-btn:hover {
+            opacity: 0.9;
+        }
+        /* Sembunyikan tombol yang tidak diperlukan */
+        .nav-btn[style*="display: none"] {
+            display: none !important;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 2em;
+        }
+        .progress-bar-fill {
+            height: 10px;
+            width: 0%; /* Dimulai dari 0% */
+            background-color: #3498db;
+            border-radius: 10px;
+            transition: width 0.4s ease-in-out;
+        }
+
+        /* --- Penyesuaian untuk Mobile (Responsive) --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 0; /* Hapus padding body agar container menempel di tepi */
+                align-items: flex-start; /* Konten dimulai dari atas */
+            }
+            .container {
+                margin: 0;
+                padding: 1.5em;
+                border-radius: 0; /* Hapus radius di mobile */
+                min-height: 100vh; /* Pastikan container memenuhi layar */
+                box-shadow: none; /* Hapus bayangan */
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            label {
+                font-size: 1.15em;
+            }
+            .question-block {
+                font-family: "Inter";
+                min-height: 180px; /* Beri ruang lebih di mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" style="text-decoration: none; color: inherit;">
+        <h1>Kuesioner Kesehatan Mental</h1>
+        </a>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+
+        <form id="multiStepForm" action="/predict" method="post">
+            
+            <div class="form-step active">
+                <div class="question-block">
+                    <label for="gender">Apa jenis kelamin Anda?</label>
+                    <select name="gender" id="gender" required>
+                        <option value="" disabled selected>Pilih salah satu...</option>
+                        <option value="1">Pria</option> 
+                        <option value="0">Wanita</option> 
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="age">Berapa usia Anda saat ini?</label>
+                    <input type="number" name="age" id="age" min="10" max="100" placeholder="Ketik usia Anda, contoh: 21" required>
+                </div>
+            </div>
+            
+            <div class="form-step">
+                 <div class="question-block">
+                    <label for="ipk">Berapa IPK Anda? (Isi 0 jika tidak/belum kuliah)</label>
+                    <input type="number" name="ipk" id="ipk" step="0.01" min="0" max="4.0" placeholder="Ketik IPK Anda, contoh: 3.54" required>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="degree">Apa jenjang pendidikan yang sedang ditempuh?</label>
+                    <select name="degree" id="degree" required>
+                        <option value="" disabled selected>Pilih jenjang pendidikan...</option>
+                        <option value="0">SMA / Sederajat</option>
+                        <option value="1">Sarjana Arsitektur (S.Ars.)</option>
+                        <option value="2">Sarjana Ekonomi (S.E.)</option>
+                        <option value="3">Sarjana Pendidikan (S.Pd.)</option>
+                        <option value="4">Sarjana Farmasi (S.Farm.)</option>
+                        <option value="5">Sarjana Teknik (S.T.)</option>
+                        <option value="6">Sarjana Sastra (S.S.)</option>
+                        <option value="7">Sarjana Administrasi Bisnis (S.A.B.)</option>
+                        <option value="8">Sarjana Komputer (S.Kom.)</option>
+                        <option value="9">Sarjana Teknik (S.T.)</option>
+                        <option value="10">Sarjana Manajemen Perhotelan (S.M.Par.)</option>
+                        <option value="11">Sarjana Sains (S.Si.)</option>
+                        <option value="12">Sarjana Hukum (S.H.)</option>
+                        <option value="13">Magister Hukum (M.H.)</option>
+                        <option value="14">Magister Ekonomi (M.E.)</option>
+                        <option value="15">Magister Pendidikan (M.Pd.)</option>
+                        <option value="16">Magister Farmasi (M.Farm.)</option>
+                        <option value="17">Magister Teknik (M.T.)</option>
+                        <option value="18">Magister Sastra (M.Hum.)</option>
+                        <option value="19">Magister Administrasi Bisnis (M.A.B.)</option>
+                        <option value="21">Magister Komputer (M.Kom.)</option>
+                        <option value="22">Dokter Spesialis (Sp.)</option>
+                        <option value="23">Magister Teknik (M.T.)</option>
+                        <option value="24">Magister Manajemen Perhotelan (M.Par.)</option>
+                        <option value="25">Magister Sains (M.Si.)</option>
+                        <option value="27">Doktor (Dr.)</option>
+                        <option value="26">Lainnya (Lainnya)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="study_satisfaction">Seberapa puas Anda dengan studi/perkuliahan Anda?</label>
+                    <select name="study_satisfaction" id="study_satisfaction" required>
+                        <option value="" disabled selected>Pilih tingkat kepuasan...</option>
+                        <option value="0">Sedang tidak menempuh pendidikan</option>
+                        <option value="1">Sangat Tidak Puas</option>
+                        <option value="2">Tidak Puas</option>
+                        <option value="3">Biasa saja</option>
+                        <option value="4">Puas</option>
+                        <option value="5">Sangat Puas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="job_satisfaction">Seberapa puas Anda dengan pekerjaan Anda (jika bekerja)?</label>
+                    <select name="job_satisfaction" id="job_satisfaction" required>
+                        <option value="" disabled selected>Pilih tingkat kepuasan...</option>
+                        <option value="0">Tidak Bekerja</option>
+                        <option value="1">Sangat Tidak Puas</option>
+                        <option value="2">Tidak Puas</option>
+                        <option value="3">Puas</option>
+                        <option value="4">Sangat Puas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="academic_pressure">Seberapa tinggi tekanan akademik yang Anda rasakan?</label>
+                    <select name="academic_pressure" id="academic_pressure" required>
+                        <option value="" disabled selected>Pilih tingkat tekanan...</option>
+                        <option value="1">Sangat Rendah</option>
+                        <option value="2">Rendah</option>
+                        <option value="3">Sedang</option>
+                        <option value="4">Tinggi</option>
+                        <option value="5">Sangat Tinggi</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="work_pressure">Seberapa tinggi tekanan pekerjaan yang Anda rasakan?</label>
+                    <select name="work_pressure" id="work_pressure" required>
+                        <option value="" disabled selected>Pilih tingkat tekanan...</option>
+                        <option value="0">Tidak Bekerja</option>
+                        <option value="1">Rendah</option>
+                        <option value="2">Tinggi</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="sleep_duration">Rata-rata, berapa jam Anda tidur setiap malam?</label>
+                    <input type="number" name="sleep_duration" id="sleep_duration" min="0" max="24" placeholder="Ketik jumlah jam, contoh: 7" required>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="dietary_habits">Bagaimana Anda menilai kebiasaan makan Anda?</label>
+                    <select name="dietary_habits" id="dietary_habits" required>
+                        <option value="" disabled selected>Pilih kebiasaan makan...</option>
+                        <option value="0">Baik</option>
+                        <option value="1">Biasa Saja</option>
+                        <option value="3">Buruk</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="work_study_hours">Berapa total jam Anda bekerja & belajar dalam sehari?</label>
+                    <input type="number" name="work_study_hours" id="work_study_hours" min="0" max="24" placeholder="Ketik jumlah jam, contoh: 8" required>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="financial_stress">Seberapa sering Anda mengalami stres karena kondisi keuangan?</label>
+                    <select name="financial_stress" id="financial_stress" required>
+                        <option value="" disabled selected>Pilih frekuensi...</option>
+                        <option value="0">Tidak Pernah</option>
+                        <option value="1">Sangat Jarang</option>
+                        <option value="2">Jarang</option>
+                        <option value="3">Sering</option>
+                        <option value="4">Sangat Sering</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="family_history">Apakah ada riwayat keluarga dengan penyakit mental?</label>
+                    <select name="family_history" id="family_history" required>
+                        <option value="" disabled selected>Pilih salah satu...</option>
+                        <option value="0">Tidak</option>
+                        <option value="1">Ya</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-step">
+                <div class="question-block">
+                    <label for="suicidal_thoughts">Dalam 2 minggu terakhir, apakah Anda pernah memiliki pikiran untuk bunuh diri?</label>
+                    <select name="suicidal_thoughts" id="suicidal_thoughts" required>
+                        <option value="" disabled selected>Pilih salah satu...</option>
+                        <option value="0">Tidak</option>
+                        <option value="1">Ya</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button type="button" class="nav-btn prev" id="prevBtn" onclick="nextPrev(-1)">Kembali</button>
+                <button type="button" class="nav-btn next" id="nextBtn" onclick="nextPrev(1)">Lanjut</button>
+            </div>
+        </form>
+    </div>
+
+<script>
+    let currentStep = 0; // Langkah saat ini dimulai dari 0
+    const steps = document.querySelectorAll(".form-step");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const form = document.getElementById("multiStepForm");
+    const progressBarFill = document.getElementById("progressBarFill");
+
+    // Tampilkan langkah pertama saat halaman dimuat
+    document.addEventListener("DOMContentLoaded", function() {
+        showStep(currentStep);
+    });
+
+    function showStep(n) {
+        // Tampilkan langkah saat ini
+        steps.forEach((step, index) => {
+            step.classList.toggle('active', index === n);
+        });
+
+        // Atur tampilan tombol
+        prevBtn.style.display = n === 0 ? "none" : "inline-block";
+        nextBtn.innerHTML = n === steps.length - 1 ? "Lihat Hasil" : "Lanjut";
+        
+        // Update progress bar
+        updateProgressBar();
+    }
+
+    function nextPrev(n) {
+        // Validasi input sebelum lanjut jika menekan tombol 'Next'
+        if (n === 1 && !validateForm()) return false;
+
+        // Pindah ke langkah selanjutnya/sebelumnya
+        currentStep += n;
+
+        if (currentStep >= steps.length) {
+            // Jika sudah di akhir, submit form
+            nextBtn.disabled = true; // Mencegah klik ganda
+            nextBtn.innerHTML = 'Memproses...';
+            form.submit();
+            return false;
+        }
+
+        showStep(currentStep);
+    }
+
+    function validateForm() {
+        let valid = true;
+        const currentInputs = steps[currentStep].querySelectorAll("input, select");
+        
+        currentInputs.forEach(input => {
+            // Cek jika input yang required belum diisi
+            if (input.hasAttribute('required') && !input.value) {
+                valid = false;
+                // Memberi highlight pada field yang kosong
+                input.style.border = '1px solid red';
+            } else {
+                input.style.border = '1px solid #ccc';
+            }
+        });
+        
+        if (!valid) {
+            alert("Harap isi semua pertanyaan sebelum melanjutkan.");
+        }
+        
+        return valid;
+    }
+
+    function updateProgressBar() {
+        const progress = (currentStep / (steps.length - 1)) * 100;
+        progressBarFill.style.width = progress + '%';
+    }
+</script>
+
+</body>
+</html>
